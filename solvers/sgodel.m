@@ -2,10 +2,11 @@
 % Godel composition.
 % This is the inverse problem for the min-alpha composition, aka
 % min - Godel_implication, aka min - ->G, where x ->G y = (y if x > y; 1 otherwize)
+
 function sol = sgodel(a,b,inequalities,full)
     if ~(size(a,1) == length(b))
         error('Inner matrix dimensions must agree.');
-    end;
+    end
 
     sol.rows = size(a,1);
     sol.cols = size(a,2);
@@ -14,11 +15,11 @@ function sol = sgodel(a,b,inequalities,full)
     sol.low = zeros(sol.cols, 1);
     sol.ind = zeros(sol.rows, 1);
     
-    %Preprocessing
+    % Preprocessing
     for j = 1:sol.cols
         for i = 1:sol.rows
-            if a(i,j) > b(i)
-                sol.help(i,j) = b(i);
+            if true || a(i,j) > b(i) % ToDo: Fix (true || xxx);
+                sol.help(i,j) = min(a(i,j), b(i));
             end
         end
     end
@@ -26,31 +27,29 @@ function sol = sgodel(a,b,inequalities,full)
     if (nargin >= 3) && (inequalities == true)
         sol.low = zeros(rows,1);
     else
-        %Find the lower solution
+        % Find the lower solution
         for j = 1:sol.cols
-            %Takes the maximal element, for the j-th column of A.
-            col_max = max(sol.help(sol.help(:,j) < 1, j));
-    
+            % Takes the maximal element, for the j-th column of A.
+            col_max = max(sol.help(:,j));
+            
             if ~isempty(col_max)
-                sol.low(j) = col_max;
-                
-                %All elemnts lower than x_low(j) should be even to 1.
+                sol.low(j) = col_max;                
                 sol.help(sol.help(:,j) + eps < col_max, j) = 1;
             end
             
-            %Next row is because we cannot compare real numbers directly (a
-            %presition problem)
+            % Next row is because we cannot compare real numbers directly (a
+            % presition problem)
             indsolved = find(abs(sol.help(:,j) - sol.low(j)) <= eps);
             sol.ind(indsolved) = sol.ind(indsolved) + 1;
         end
     end    
     
-    %Check if the system is consistent
+    % Check if the system is consistent
     if ~all(sol.ind)
         sol.exist = false;
         sol.contradict = find(sol.ind' == 0);
         return;
-    end;
+    end
     
     sol.exist = true;
     
@@ -58,10 +57,11 @@ function sol = sgodel(a,b,inequalities,full)
         sol = sol.low;
         return;
     end
-    
-    %Domination
+
+    % Domination
     sol.dominated = find(b==1);
-    for i = 2:sol.rows
+    % sol.dominated = [];
+    for i = 2:(sol.rows-height(sol.dominated)) % ToDo: FIX - This is stupid. Let me check if I, at least sort the rows. If yes, this should work in any case. If not it will not work. It will be better to just remove the rows!
         for ii = i-1:-1:1
             if isempty(sol.dominated(sol.dominated == ii))
                 positivej = find(sol.help(i,:) < 1);
@@ -75,13 +75,14 @@ function sol = sgodel(a,b,inequalities,full)
             end
         end
     end
+    
     for i = sort(sol.dominated, 'descend')
        sol.help(i,:) = [];
     end
 
     sol.help_rows = size(sol.help,1);
     
-    %Find greater solution (depth-first-search)
+    % Find greater solution (depth-first-search)
     if sol.help_rows == 0
         sol.gr = ones(sol.cols,1);
     else
@@ -107,9 +108,9 @@ function sol = sgodel(a,b,inequalities,full)
 
     function add_gr(gr)
         for k = 1:size(sol.gr, 2)
-            if all(gr <= sol.gr(:,k))
+            if all(gr >= sol.gr(:,k))
                 sol.gr(:,k) = [];
-            elseif all(sol.gr(:,k) <= gr)
+            elseif all(sol.gr(:,k) >= gr)
                 return;
             end
         end

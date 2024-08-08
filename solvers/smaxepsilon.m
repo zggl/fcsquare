@@ -1,3 +1,6 @@
+% ToDo CHECK THIS. By logic it has to be as "sgodel"... so it should be "max"; A duplicate maybe?
+
+
 % Solve fuzzy linear systems of equations/inequalities for systems with
 % max-epsilon composition.
 % x Eps y = (y if y > x; 0 otherwize)

@@ -55,7 +55,7 @@ function sol = sgoguen(a,b,inequalities,full)
             sol.exist = false;
             sol.contradict = find(sol.ind' == 0);
             return;
-        end;
+        end
     end
     
     sol.exist = true;
@@ -128,10 +128,11 @@ function sol = sgoguen(a,b,inequalities,full)
     end
 
     function add_gr(gr)
+        % ToDo: If I want to see all *possible* solutions I can just comment the following "for". Probably need to remove this comment later.
         for k = 1:size(sol.gr, 2)
-            if all(gr <= sol.gr(:,k))
+            if all(gr >= sol.gr(:,k))
                 sol.gr(:,k) = [];
-            elseif all(sol.gr(:,k) <= gr)
+            elseif all(sol.gr(:,k) >= gr)
                 return;
             end
         end

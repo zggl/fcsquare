@@ -20,6 +20,16 @@ function sol = smaxlukasiewicz(a,b,inequalities,full)
     sol.gr = ones(sol.cols, 1);
     sol.ind = zeros(sol.rows, 1);
     
+    % ToDo: The below is actually producig wrong solutions! Just find out why. Just to know. Then remove it.
+    %Preprocessing
+    % for j = 1:sol.cols
+    %     for i = 1:sol.rows
+    %         if a(i,j) - 1 <= b(i) + eps                     % !!!!!!!!!! IMPORTANT: THIS IS PRACTICALLY - AWLAYS!
+    %             sol.help(i,j) = min(1, 1 - a(i,j) + b(i));  % !!!!!!!!!!            THIS is the exact formula. Probably we can actually do the exact formulas, after the bugfix in sgodel.m
+    %         end
+    %     end
+    % end
+    
     %Preprocessing
     for j = 1:sol.cols
         for i = 1:sol.rows
@@ -28,7 +38,7 @@ function sol = smaxlukasiewicz(a,b,inequalities,full)
             end
         end
     end
-    
+
     %Find greatest solution
     for j = 1:sol.cols
         %Takes the minimal element, bigger than 0, for the j-th column of A.
@@ -54,7 +64,7 @@ function sol = smaxlukasiewicz(a,b,inequalities,full)
             sol.exist = false;
             sol.contradict = find(sol.ind' == 0);
             return;
-        end;
+        end
     end
     
     sol.exist = true;
@@ -87,10 +97,18 @@ function sol = smaxlukasiewicz(a,b,inequalities,full)
             end
         end
     end
-    for i = sol.dominated
-        sol.help(i,:) = [];
-    end
+
+    % ToDo: The method below was wrong (and a codesmell even if it was right)... Because the matrix shorten
+    % iteratively, depending on the row numbers in the sol.dominated vector it was not removing dominated rows.
+    % This is probably a problem for all sovers. Investigate and fix.
+    sol.help(sol.dominated, :) = [];
+
+    % for i = sol.dominated
+    %     sol.help(i,:) = [];
+    % end
     
+
+
     sol.help_rows = size(sol.help,1);
     
     %Find lower solution (depth-first-search)
